@@ -1,5 +1,6 @@
+#include <ESP8266WiFi.h>
 #include <Wire.h>
-#ifdef STASSID
+#ifndef STASSID
 #define STASSID "JJJGHU 6816" // Wifi Number
 #define STAPSK "jjjghu123"    // Wifi Password
 #endif
@@ -45,7 +46,7 @@ int wificheck = 0;
 void setup()
 {
     pinMode(2, OUTPUT);
-    digitalWrite12, HIGH);
+    digitalWrite(2, HIGH);
 
     Serial.begin(115200); // Communication frequency
     Serial.println("Connecting to ");
@@ -71,14 +72,14 @@ void loop()
 {
     static WiFiClient client;
 
-    if (wifiCheck = 1000)
+    if (wificheck == 1000)
     {
         while (!client.connect(host, port))
         {
             Serial.println("Jetson Nano connection failed");
             digitalWrite(2, LOW); // Turn the LED OFF by making the voltage LOW
         }
-        wifiCheck = 0;
+        wificheck = 0;
     }
 
     digitalWrite(2, HIGH);
@@ -109,16 +110,17 @@ void loop()
     }
     else
     {
-        SentToServer(client, String("0"));
+        SendToServer(client, String("0"));
         Serial.printf(" flag: %d", flag);
     }
 }
 
-void SentToServer(WiFiClient client, String str)
+void SendToServer(WiFiClient client, String str)
 {
     client.print(str);
     Serial.println(" Sent: " + str);
 }
+
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
 {
     Wire.beginTransmission(deviceAddress);
@@ -126,20 +128,22 @@ void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
     Wire.write(data);
     Wire.endTransmission();
 }
-void Read_RawValue(uint8_t, deviceAddress, uint8_t regAddress)
+
+void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress)
 {
     Wire.beginTransmission(deviceAddress);
     Wire.write(regAddress);
     Wire.endTransmission();
     Wire.requestFrom(deviceAddress, (uint8_t)14);
-    AccelX = (((int_16)Wire.read() << 8) | Wire.read());
-    AccelY = (((int_16)Wire.read() << 8) | Wire.read());
-    AccelZ = (((int_16)Wire.read() << 8) | Wire.read());
-    Temperature = (((int_16)Wire.read() << 8) | Wire.read());
-    GyroX = ((((int_16)Wire.read() << 8) | Wire.read()));
-    GyroY = ((((int_16)Wire.read() << 8) | Wire.read()));
-    GyroZ = ((((int_16)Wire.read() << 8) | Wire.read()));
+    AccelX = (((int16_t)Wire.read() << 8) | Wire.read());
+    AccelY = (((int16_t)Wire.read() << 8) | Wire.read());
+    AccelZ = (((int16_t)Wire.read() << 8) | Wire.read());
+    Temperature = (((int16_t)Wire.read() << 8) | Wire.read());
+    GyroX = ((((int16_t)Wire.read() << 8) | Wire.read()));
+    GyroY = ((((int16_t)Wire.read() << 8) | Wire.read()));
+    GyroZ = ((((int16_t)Wire.read() << 8) | Wire.read()));
 }
+
 // Configure MPU6050
 void MPU6050_Init()
 {
