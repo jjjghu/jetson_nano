@@ -61,21 +61,20 @@ void setup()
   MPU6050_Init();
 }
 
-WiFiClient client;
 void loop()
 {
-  while (!client.connected())
+  static WiFiClient client;
+  if (!client.connected())
   {
-    Serial.println("Attempting to connect...");
     if (client.connect(host, port))
     {
       Serial.println("Connected to server");
-      break;
     }
     else
     {
       Serial.println("Connection failed");
-      delay(2000); // 等待2秒後重試
+      delay(1000);
+      return;
     }
   }
 
@@ -110,7 +109,7 @@ void loop()
   client.print(str);
   Serial.println(" Sent: " + str);
   Serial.printf(" flag: %d ", flag);
-  delay(10);
+  delay(500);
 }
 
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
