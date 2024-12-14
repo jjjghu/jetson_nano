@@ -1,3 +1,0 @@
-0 Relax
-1 Move
-2 Curl
