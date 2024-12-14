@@ -51,7 +51,7 @@ label=["Relax","Move","Curl"]
 model=tf.keras.models.load_model("keras_model.h5",compile=False)
 
 # 設定伺服器IP
-HOST = '192.168.0.49'
+HOST = '192.168.23.238'
 PORT = 8080
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -77,6 +77,9 @@ t_start = 0
 
 # 開始即時辨識
 t_start = time.time()
+
+client, addr =server.accept()
+
 while(not vid.isStop):
         '''t_check = time.time() - t_start'''            
 # 取得當前圖片
@@ -87,8 +90,10 @@ while(not vid.isStop):
         data = preprocess(frame, resize=(224,224), norm=True)
         prediction = model(data)[0]
 # 進行client資料抓取
-        client, addr =server.accept()
-        clientMessage=str(client.recv(30),'utf-8')
+        clientMessage = client.recv(32)
+        if not clientMessage:
+	        continue
+        clientMessage=str(clientMessage,'utf-8')
 # 解析 辨識結果
         #last_trg_class=trg_class
         trg_id, trg_class, trg_prob =parse_output(prediction, label)
@@ -96,14 +101,14 @@ while(not vid.isStop):
 # 設定顯示資訊
         print('MPU6050_Message:'+clientMessage)
 # 進行NANO及MPU6050同時比對
-        if (clientMessage=='1'):
-            case_message=1
+        #if (clientMessage=='1'):
+        #    case_message=1
         if(last_trg_class==label[2]):
             case_curl=1
         if(case_curl==1 and trg_class==label[0]):
             finish_curl=1
             case_curl=0
-        if (case_message==1 and finish_curl==1):
+        if (finish_curl==1):
             #global Curl_Count
             Curl_Count=Curl_Count+1
             case_message=0
