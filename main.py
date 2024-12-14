@@ -51,7 +51,7 @@ label=["Relax","Move","Curl"]
 model=tf.keras.models.load_model("keras_model.h5",compile=False)
 
 # 設定伺服器IP
-HOST = '192.168.137.203'
+HOST = '192.168.0.49'
 PORT = 8080
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
