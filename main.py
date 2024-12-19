@@ -50,13 +50,6 @@ root.mainloop()
 label=["Relax","Move","Curl"] 
 model=tf.keras.models.load_model("keras_model.h5",compile=False)
 
-# 設定伺服器IP
-# HOST = '192.168.137.79'
-# PORT = 8080
-# server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# server.bind((HOST, PORT))
-# server.listen(10)
-
 # 給予相關參數
 
 global Curl_Count
@@ -78,48 +71,25 @@ t_start = 0
 # 開始即時辨識
 t_start = time.time()
 
-# client, addr =server.accept()
+client, addr =server.accept()
 
-# 初始化參數
-current_display = ""  # 當前顯示狀態
-last_trg_class = ""   # 上一幀模型輸出的類別
-case_curl = False     # 是否處於 Curl 的中間狀態
-Curl_Count = 0        # 計數器
+while(not vid.isStop):
+        '''t_check = time.time() - t_start'''            
+# 取得當前圖片
+        ret, frame = vid.get_current_frame()        
+# 如果沒有幀則重新執行
+        if not ret: continue        
+# 進行處理與推論
+        data = preprocess(frame, resize=(224,224), norm=True)
+        prediction = model(data)[0]
+# 進行client資料抓取
+# 解析 辨識結果
+        #last_trg_class=trg_class
+        trg_id, trg_class, trg_prob = parse_output(prediction, label)
+        vid.info = '{} ,Count:{} '.format(trg_class,Curl_Count)#, vid.get_fps())
+# 更新 time
 
-while not vid.isStop:
-    # 取得當前圖片
-    ret, frame = vid.get_current_frame()
-    if not ret:
-        continue
-
-    # 進行處理與推論
-    data = preprocess(frame, resize=(224, 224), norm=True)
-    prediction = model(data)[0]
-    trg_id, trg_class, trg_prob = parse_output(prediction, label)
-
-    # 判斷邏輯：更新狀態和計數
-    if trg_class == label[2]:  # 當前是 "Curl"
-        case_curl = True
-        current_display = trg_class  # 顯示 "Curl"
-    elif trg_class == label[0] and case_curl:  # 從 "Curl" 回到 "Relax"
-        Curl_Count += 1
-        case_curl = False
-        current_display = trg_class  # 顯示 "Relax"
-    else:
-        current_display = trg_class  # 其他狀態直接顯示
-
-    # 更新畫面上的資訊
-    vid.info = '{} , Count: {}'.format(current_display, Curl_Count)
-
-    # 如果完成目標次數，結束迴圈
-    if Curl_Count == key_in:
-        print("Finish curl")
-        time.sleep(2)
-        close_thread = 1
-        break
-    # 更新上一幀狀態
-    last_trg_class = trg_class
-
+        t_start = time.time()
 vid.info =('Finish %s times curls Please press Esc' %Curl_Count)
 while(vid.isStop):
     root1 = tk.Tk()
