@@ -51,7 +51,7 @@ label=["Relax","Move","Curl"]
 model=tf.keras.models.load_model("keras_model.h5",compile=False)
 
 # 設定伺服器IP
-HOST = '192.168.23.238'
+HOST = '192.168.137.79'
 PORT = 8080
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -91,9 +91,10 @@ while(not vid.isStop):
         prediction = model(data)[0]
 # 進行client資料抓取
         clientMessage = client.recv(32)
-        if not clientMessage:
-	        continue
-        clientMessage=str(clientMessage,'utf-8')
+        # if not clientMessage:
+	#         continue
+        if clientMessage:
+                clientMessage=str(clientMessage,'utf-8')
 # 解析 辨識結果
         #last_trg_class=trg_class
         trg_id, trg_class, trg_prob =parse_output(prediction, label)
