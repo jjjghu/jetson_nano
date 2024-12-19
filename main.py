@@ -80,6 +80,12 @@ t_start = time.time()
 
 # client, addr =server.accept()
 
+# 初始化參數
+current_display = ""  # 當前顯示狀態
+last_trg_class = ""   # 上一幀模型輸出的類別
+case_curl = False     # 是否處於 Curl 的中間狀態
+Curl_Count = 0        # 計數器
+
 while not vid.isStop:
     # 取得當前圖片
     ret, frame = vid.get_current_frame()
@@ -91,18 +97,19 @@ while not vid.isStop:
     prediction = model(data)[0]
     trg_id, trg_class, trg_prob = parse_output(prediction, label)
 
-    # 進行 Curl 計數邏輯
-    if last_trg_class == label[2]:  # 如果上一幀是 "Curl"
-        case_curl = 1
-    if case_curl == 1 and trg_class == label[0]:  # 回到 "Relax"
-        finish_curl = 1
-        case_curl = 0
-    if finish_curl == 1:
+    # 判斷邏輯：更新狀態和計數
+    if trg_class == label[2]:  # 當前是 "Curl"
+        case_curl = True
+        current_display = trg_class  # 顯示 "Curl"
+    elif trg_class == label[0] and case_curl:  # 從 "Curl" 回到 "Relax"
         Curl_Count += 1
-        finish_curl = 0
+        case_curl = False
+        current_display = trg_class  # 顯示 "Relax"
+    else:
+        current_display = trg_class  # 其他狀態直接顯示
 
-    # 顯示當前資訊
-    vid.info = '{} , Count: {} '.format(trg_class, Curl_Count)
+    # 更新畫面上的資訊
+    vid.info = '{} , Count: {}'.format(current_display, Curl_Count)
 
     # 如果完成目標次數，結束迴圈
     if Curl_Count == key_in:
@@ -110,7 +117,6 @@ while not vid.isStop:
         time.sleep(2)
         close_thread = 1
         break
-
     # 更新上一幀狀態
     last_trg_class = trg_class
 
